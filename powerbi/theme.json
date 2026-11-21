@@ -1,0 +1,7 @@
+{
+  "name": "Channel Atlas",
+  "dataColors": ["#FF8E77", "#78D9E7", "#B2A1F9", "#F4CD75", "#86D2A6", "#F49DBD"],
+  "background": "#10141D",
+  "foreground": "#F2F4FA",
+  "tableAccent": "#FF8E77"
+}

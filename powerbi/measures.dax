@@ -1,0 +1,16 @@
+// Create each definition separately using Modeling > New measure.
+Channel Count = COALESCE(COUNTROWS(Channels), 0)
+
+Median Subscribers = MEDIAN(Channels[Subscribers])
+
+Total Lifetime Views = SUM(Channels[Lifetime Views])
+
+Recent Reporting Channels = COALESCE(COUNT(Channels[Recent Subscribers]), 0)
+
+Recent Subscriber Coverage = DIVIDE([Recent Reporting Channels], [Channel Count])
+
+Median Recent Subscribers = MEDIAN(Channels[Recent Subscribers])
+
+Unknown Country Channels = CALCULATE([Channel Count], KEEPFILTERS(Channels[Country] = "Unknown"))
+
+Unknown Category Channels = CALCULATE([Channel Count], KEEPFILTERS(Channels[Category] = "Unknown"))
