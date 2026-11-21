@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>YouTube 2023 | Channel Atlas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#10141d;color:#f2f4fa;font:16px system-ui,sans-serif}main{max-width:1150px;margin:auto;padding:44px 20px}.eyebrow,label{color:#aebbd0;font-size:.82rem}h1{font-size:clamp(2.4rem,7vw,5rem);margin:8px 0;letter-spacing:-.06em}p{color:#b9c4d4;line-height:1.6}.filters,.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:24px 0}select,input{display:block;width:100%;margin-top:6px;padding:10px;background:#1c2534;color:#fff;border:1px solid #65718a;border-radius:6px}.card,section{background:#192131;border:1px solid #303d54;border-radius:12px;padding:18px}.card strong{display:block;font-size:2rem;color:#ffb2a1}.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px;margin-bottom:14px}h2{margin-top:0;font-size:1.1rem}.bar{display:grid;grid-template-columns:minmax(105px,1fr) 2fr 38px;align-items:center;gap:8px;margin:10px 0;font-size:.85rem}meter{width:100%;accent-color:#ff8e77}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;white-space:nowrap}td,th{text-align:left;padding:9px;border-bottom:1px solid #303d54}small{color:#b9c4d4}
+</style><main>
+<div class="eyebrow">CHANNEL ATLAS / HISTORICAL SNAPSHOT</div><h1>YouTube in 2023</h1><p>Explore the 995 ranked entries in the source dataset. This is not a census of YouTube.</p>
+<div class="filters"><label>Country<select id="country"></select></label><label>Category<select id="category"></select></label><label>Channel name<input id="search" type="search" placeholder="Search channels"></label><label>Rank channels by<select id="metric"><option value="subscribers">Subscribers</option><option value="views">Lifetime views</option><option value="recent">Subscribers gained (30 days)</option></select></label></div>
+<div class="grid" id="cards" aria-live="polite"></div><div class="split"><section><h2>Top countries by channel count</h2><div id="countries"></div></section><section><h2>Top categories by channel count</h2><div id="categories"></div></section></div>
+<section><h2>Top 15 matching channels</h2><div class="scroll"><table><thead><tr><th>Source rank</th><th>Channel</th><th>Country</th><th>Category</th><th id="metric-name">Subscribers</th></tr></thead><tbody id="leaders"></tbody></table></div><p><small>Missing values are excluded from the selected ranking. Unknown country and category labels are retained. Source view counts may be rounded.</small></p></section>
+</main><script>
+const rows = /* SNAPSHOT */;
+const el = id => document.getElementById(id);
+const fmt = n => new Intl.NumberFormat('en').format(n);
+function node(tag,text){const n=document.createElement(tag);n.textContent=text;return n;}
+for(const key of ['country','category']){
+  el(key).add(new Option('All',''));
+  [...new Set(rows.map(r=>r[key]))].sort().forEach(v=>el(key).add(new Option(v,v)));
+}
+function bars(id,key,data){
+  const counts=new Map();data.forEach(r=>counts.set(r[key],(counts.get(r[key])||0)+1));
+  const top=[...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,6);
+  el(id).replaceChildren(...top.map(([label,n])=>{
+    const box=node('div','');box.className='bar';const m=document.createElement('meter');m.min=0;m.max=top[0][1];m.value=n;m.setAttribute('aria-label',label);box.append(node('span',label),m,node('span',fmt(n)));return box;
+  }));if(!top.length)el(id).textContent='No matching channels.';
+}
+function render(){
+  const q=el('search').value.trim().toLowerCase(), metric=el('metric').value;
+  const data=rows.filter(r=>(!el('country').value||r.country===el('country').value)&&(!el('category').value||r.category===el('category').value)&&r.name.toLowerCase().includes(q));
+  const known=data.filter(r=>r.recent!==null).length;
+  const coverage=data.length?`${(100*known/data.length).toFixed(1)}%`:'—';
+  const subs=data.map(r=>r.subscribers).filter(n=>n!==null).sort((a,b)=>a-b), mid=Math.floor(subs.length/2);
+  const median=subs.length?(subs[mid]+subs[Math.floor((subs.length-1)/2)])/2:null;
+  el('cards').replaceChildren(...[['Matching channels',fmt(data.length)],['Median subscribers',median===null?'—':fmt(median)],['30-day subscriber coverage',coverage]].map(([label,value])=>{const n=node('div',label);n.className='card';n.append(node('strong',value));return n;}));
+  bars('countries','country',data);bars('categories','category',data);
+  el('metric-name').textContent=el('metric').selectedOptions[0].text;
+  const top=data.filter(r=>r[metric]!==null).sort((a,b)=>b[metric]-a[metric]||a.rank-b.rank).slice(0,15);
+  el('leaders').replaceChildren(...top.map(r=>{const tr=node('tr','');tr.append(...[r.rank,r.name,r.country,r.category,fmt(r[metric])].map(v=>node('td',v)));return tr;}));
+  if(!top.length){const tr=node('tr',''),td=node('td','No matching channels with data for this metric.');td.colSpan=5;tr.append(td);el('leaders').append(tr);}
+}
+['country','category','search','metric'].forEach(id=>el(id).addEventListener('input',render));render();
+</script></html>
